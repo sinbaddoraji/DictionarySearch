@@ -9,6 +9,14 @@ namespace DictionarySearch
 {
     internal class WordDictionary
     {
+        private static WordDictionary _instance;
+
+        public static WordDictionary Instance
+        {
+            get { return _instance ?? (_instance = new WordDictionary()); }
+            set { _instance = value; }
+        }
+
         readonly string[] Words;
 
         public enum SearchConditon { StartsWith, EndsWith, Contains, ExactMatch, SimilarTo, Regex, None}
@@ -39,7 +47,7 @@ namespace DictionarySearch
                 case SearchConditon.ExactMatch:
                     return innerDictionary.Where(x => x == pattern);
                 case SearchConditon.SimilarTo:
-                    return innerDictionary.Where(x => CalculateSimilarity(x, pattern) > 70);
+                    return innerDictionary.Where(x => CalculateSimilarity(x, pattern) >= 65);
                 case SearchConditon.Regex:
                     return innerDictionary.Where(x => Regex.IsMatch(x, pattern));
                 default: return innerDictionary;

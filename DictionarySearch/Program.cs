@@ -8,7 +8,6 @@ namespace DictionarySearch
 {
     internal class Program
     {
-        static WordDictionary wordDictionary;
         static int wordLength = -1;
         static string pattern = "";
         static WordDictionary.SearchConditon searchConditon = WordDictionary.SearchConditon.None;
@@ -16,24 +15,65 @@ namespace DictionarySearch
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Loading Dictionary...");
-            WordDictionary wordDictionary = new WordDictionary();
-            Console.Clear();
+            StartSearch();
+            Console.WriteLine("Application about to exit... ");
+            Console.ReadKey();
+        }
 
+        static void StartSearch()
+        {
+            GetWordLength();
+
+            GetSearchType();
+
+            DisplaySearch();
 
             Console.WriteLine();
-            Console.Write("Specify Word Length? Y/N");
-            var response = Console.ReadKey().KeyChar;
+            Console.Write("Do you want to restart? Y/N");
+            char response = Console.ReadKey().KeyChar;
 
-            if(response == 'Y' || response == 'y')
+            if (response == 'Y' || response == 'y')
             {
+                StartSearch();
+            }
+        }
+
+        private static void DisplaySearch()
+        {
+            Console.WriteLine();
+            Console.Write("Search for? ");
+            pattern = Console.ReadLine();
+
+            Console.WriteLine("Searching...\n\n");
+
+            var results = WordDictionary.Instance.Search(wordLength, pattern, searchConditon);
+            Console.WriteLine("Results: ");
+
+            foreach (var result in results)
+            {
+                Console.WriteLine(result);
+            }
+        }
+
+        private static void GetWordLength()
+        {
+            Console.WriteLine();
+            Console.Write("Specify Word Length? Y/N: ");
+            var response = Console.ReadKey().KeyChar;
+           
+
+            if (response == 'Y' || response == 'y')
+            {
+                Console.WriteLine();
                 Console.Write("Word Length?");
                 wordLength = int.Parse(Console.ReadLine());
             }
+        }
 
+        private static void GetSearchType()
+        {
             Console.WriteLine();
             Console.WriteLine("Select Search type");
-
             Console.WriteLine("(1) Starts With");
             Console.WriteLine("(2) Ends With");
             Console.WriteLine("(3) Contains");
@@ -42,26 +82,16 @@ namespace DictionarySearch
             Console.WriteLine("(6) Regex");
             Console.WriteLine("(7) None");
             Console.Write(" : ");
-            searchConditon = (WordDictionary.SearchConditon)int.Parse(Console.ReadLine()) - 1
-                ;
 
-            Console.WriteLine();
-            Console.Write("Search for? ");
-            pattern = Console.ReadLine();
+            int.TryParse(Console.ReadLine(), out int sTyChoice);
 
-            Console.WriteLine("Searching...\n\n");
-
-
-
-            var results = wordDictionary.Search(wordLength, pattern, searchConditon);
-            Console.WriteLine("Results: ");
-
-            foreach (var result in results)
+            while (sTyChoice < 1 || sTyChoice > 7)
             {
-                Console.WriteLine(result);
+                Console.WriteLine("Please input value between 1 and 7\n");
+                Console.Write(" : ");
+                int.TryParse(Console.ReadLine(), out sTyChoice);
             }
-
-            Console.ReadKey();
+            searchConditon = (WordDictionary.SearchConditon)sTyChoice - 1;
         }
     }
 }
