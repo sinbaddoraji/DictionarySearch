@@ -17,41 +17,79 @@ namespace DictionarySearch
             set { _instance = value; }
         }
 
-        readonly string[] Words;
+        IEnumerable<string> Words;
 
-        public enum SearchConditon { StartsWith, EndsWith, Contains, ExactMatch, SimilarTo, Regex, None}
+        public enum SearchConditon { StartsWith, EndsWith, Contains, ExactMatch, SimilarTo, Regex, None, WordAt}
         public WordDictionary()
         {
-            Words = Properties.Resources.words.Split('\n');
+            Words = Properties.Resources.words.Split('\n').Select(x => x.ToLower());
         }
 
-        public IEnumerable<string> Search(int wordLength = -1, string pattern = "", SearchConditon searchConditon = SearchConditon.ExactMatch)
+        public void Refresh()
+        {
+            Words = Properties.Resources.words.Split('\n').Select(x => x.ToLower());
+        }
+
+        private bool Contains(string str, string substr, bool inverse)
+        {
+            bool output = true;
+
+            foreach (var s in substr.Split(' '))
+            {
+                if(inverse)
+                    output &= !str.Contains(s);
+                else
+                    output &= str.Contains(s);
+            }
+
+            if (inverse)
+                return !output;
+
+            return output;
+        }
+
+       
+        public IEnumerable<string> Search(int wordLength, string pattern, SearchConditon searchConditon, bool inverse, int index = -1)
         {
 
             IEnumerable<string> innerDictionary;
 
             if (wordLength > -1)
+                
                 innerDictionary = Words.Where(x => x.Length == wordLength);
 
             else
                 innerDictionary = Words.ToList();
 
+
             switch (searchConditon)
             {
                 case SearchConditon.StartsWith:
-                    return innerDictionary.Where(x => x.StartsWith(pattern));
+                    innerDictionary =  innerDictionary.Where(x => x.StartsWith(pattern,StringComparison.CurrentCultureIgnoreCase) == !inverse);
+                    break;
                 case SearchConditon.EndsWith:
-                    return innerDictionary.Where(x => x.EndsWith(pattern));
+                    innerDictionary = innerDictionary.Where(x => x.EndsWith(pattern, StringComparison.CurrentCultureIgnoreCase) == !inverse);
+                    break;
                 case SearchConditon.Contains:
-                    return innerDictionary.Where(x => x.Contains(pattern));
+                    innerDictionary = innerDictionary.Where(x => Contains(x,pattern,inverse) == !inverse);
+                    break;
                 case SearchConditon.ExactMatch:
-                    return innerDictionary.Where(x => x == pattern);
+                    innerDictionary = innerDictionary.Where(x => x.Equals(pattern, StringComparison.CurrentCultureIgnoreCase));
+                    break;
                 case SearchConditon.SimilarTo:
-                    return innerDictionary.Where(x => CalculateSimilarity(x, pattern) >= 65);
+                    innerDictionary = innerDictionary.Where(x => CalculateSimilarity(x, pattern) >= 65);
+                    break;
+                case SearchConditon.WordAt:
+                    if(index > 0)
+                        innerDictionary = innerDictionary.Where(x => x.Length >= index  && (x[index - 1] == pattern[0]) == !inverse);
+                    break;
                 case SearchConditon.Regex:
-                    return innerDictionary.Where(x => Regex.IsMatch(x, pattern));
-                default: return innerDictionary;
+                    innerDictionary = innerDictionary.Where(x => Regex.IsMatch(x, pattern) == !inverse);
+                    break;
             }
+
+            Words = innerDictionary;
+            return innerDictionary;
         }
 
         int ComputeLevenshteinDistance(string source, string target)

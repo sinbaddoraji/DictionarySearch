@@ -11,7 +11,7 @@ namespace DictionarySearch
         static int wordLength = -1;
         static string pattern = "";
         static WordDictionary.SearchConditon searchConditon = WordDictionary.SearchConditon.None;
-
+        static bool isInverse = false;
 
         static void Main(string[] args)
         {
@@ -29,7 +29,7 @@ namespace DictionarySearch
             DisplaySearch();
 
             Console.WriteLine();
-            Console.Write("Do you want to restart? Y/N");
+            Console.Write("Do you want to Continue? Y/N");
             char response = Console.ReadKey().KeyChar;
 
             if (response == 'Y' || response == 'y')
@@ -40,13 +40,30 @@ namespace DictionarySearch
 
         private static void DisplaySearch()
         {
-            Console.WriteLine();
-            Console.Write("Search for? ");
-            pattern = Console.ReadLine();
+           
+            int index = -1;
+            if ((int)searchConditon == 8-1)
+            {
+                Console.WriteLine("Note index starts from 1");
+                Console.WriteLine();
+
+                Console.Write("At index :");
+                int.TryParse(Console.ReadLine(), out index);
+
+                Console.WriteLine();
+                Console.Write("Search for? ");
+                pattern = Console.ReadKey().KeyChar.ToString();
+            }
+            else
+            {
+                Console.WriteLine();
+                Console.Write("Search for? ");
+                pattern = Console.ReadLine();
+            }
 
             Console.WriteLine("Searching...\n\n");
 
-            var results = WordDictionary.Instance.Search(wordLength, pattern, searchConditon);
+            var results = WordDictionary.Instance.Search(wordLength, pattern, searchConditon, isInverse, index);
             Console.WriteLine("Results: ");
 
             foreach (var result in results)
@@ -57,6 +74,9 @@ namespace DictionarySearch
 
         private static void GetWordLength()
         {
+            if (wordLength != -1)
+                return;
+
             Console.WriteLine();
             Console.Write("Specify Word Length? Y/N: ");
             var response = Console.ReadKey().KeyChar;
@@ -73,25 +93,36 @@ namespace DictionarySearch
         private static void GetSearchType()
         {
             Console.WriteLine();
+            Console.WriteLine("Negate Search by making input negative");
+            Console.WriteLine("For example, -1 means not start with input");
             Console.WriteLine("Select Search type");
             Console.WriteLine("(1) Starts With");
             Console.WriteLine("(2) Ends With");
             Console.WriteLine("(3) Contains");
-            Console.WriteLine("(4) Exact Match");
-            Console.WriteLine("(5) Similar To");
-            Console.WriteLine("(6) Regex");
-            Console.WriteLine("(7) None");
+            Console.WriteLine("(5) Exact Match");
+            Console.WriteLine("(6) Similar To");
+            Console.WriteLine("(7) Regex");
+            Console.WriteLine("(8) Word at Index");
+            Console.WriteLine("(9) Refresh word list");
             Console.Write(" : ");
 
             int.TryParse(Console.ReadLine(), out int sTyChoice);
 
-            while (sTyChoice < 1 || sTyChoice > 7)
+            while (sTyChoice < -9 || sTyChoice > 8)
             {
-                Console.WriteLine("Please input value between 1 and 7\n");
+                if(sTyChoice == 9)
+                {
+                    WordDictionary.Instance.Refresh();
+                    Console.WriteLine("Dictionally successfully reset");
+                }
+                Console.WriteLine("Please input value between 1 and 8\n");
                 Console.Write(" : ");
                 int.TryParse(Console.ReadLine(), out sTyChoice);
             }
-            searchConditon = (WordDictionary.SearchConditon)sTyChoice - 1;
+
+
+            isInverse = sTyChoice < 0;
+            searchConditon = (WordDictionary.SearchConditon)Math.Abs(sTyChoice) - 1;
         }
     }
 }
