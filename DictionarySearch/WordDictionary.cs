@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DictionarySearch
 {
-    internal class WordDictionary
+    public class WordDictionary
     {
         private static WordDictionary _instance;
 
